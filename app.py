@@ -20,12 +20,15 @@ NOMBRES = ["Tipo de grafo", "Número de nodos", "Construcción", "Revisión",
            "Condiciones", "Rutas", "Resultado"]
 COLORES = {"Azul": "#1f4fbf", "Verde": "#157347", "Morado": "#6b3fc0",
            "Turquesa": "#0f766e", "Naranja": "#c2570c"}
+FONDOS = {"Blanco": ("#ffffff", "#eef1f5"), "Gris claro": ("#f4f5f7", "#e4e7eb"),
+          "Celeste": ("#eef6fc", "#d9e9f6"), "Crema": ("#fbf8f1", "#efe7d6"),
+          "Menta": ("#f1f8f4", "#dcede3")}
 
 ss = st.session_state
 INICIAL = {"paso": 1, "tipo": "No dirigido", "sorteado": None, "n": 6, "modo": "Generar al azar",
            "semilla": random.randint(100, 999), "grafo": None, "rutas": None, "costos": None,
            "ciclos": None, "resultado": None, "actual": 0, "elegido": 0, "reproduciendo": False,
-           "version": 0, "color": "Azul", "zip": None, "recien_creado": False}
+           "version": 0, "color": "Azul", "fondo": "Blanco", "zip": None, "recien_creado": False}
 for clave, valor in INICIAL.items():
     if clave not in ss:
         ss[clave] = valor
@@ -81,7 +84,7 @@ def atras():
 
 def nuevo_grafo():
     for clave, valor in INICIAL.items():
-        if clave != "color":
+        if clave not in ("color", "fondo"):
             ss[clave] = valor
     ss.semilla = random.randint(100, 999)
 
@@ -111,13 +114,31 @@ with st.sidebar:
         if i < ss.paso:
             st.markdown("✅ %d. %s" % (i, nombre))
         elif i == ss.paso:
-            st.markdown("👉 **%d. %s**" % (i, nombre))
+            st.markdown('<span class="paso-actual">▶ %d. %s</span>' % (i, nombre), unsafe_allow_html=True)
         else:
             st.markdown("⚪ %d. %s" % (i, nombre))
     st.divider()
-    st.selectbox("Color del recorrido", list(COLORES), key="color")
-    st.caption("Para cambiar el fondo a claro u oscuro: menú ⋮ de arriba a la derecha, "
-               "opción Settings.")
+    st.markdown("**🎨 Colores de la página**")
+    st.selectbox("Color principal", list(COLORES), key="color")
+    st.selectbox("Fondo", list(FONDOS), key="fondo")
+
+# Aplica los colores elegidos a botones, títulos y fondo
+COLOR = COLORES[ss.color]
+FONDO, FONDO_LATERAL = FONDOS[ss.fondo]
+st.markdown("""<style>
+.stApp, [data-testid="stHeader"] { background-color: %(f)s; }
+[data-testid="stSidebar"] { background-color: %(fl)s; }
+button[kind="primary"] { background-color: %(c)s !important; border-color: %(c)s !important; color: #ffffff !important; }
+button[kind="primary"]:hover { filter: brightness(1.12); }
+button[kind="secondary"]:hover, button[kind="secondary"]:focus { border-color: %(c)s !important; color: %(c)s !important; }
+[data-testid="stSlider"] [role="slider"] { background-color: %(c)s !important; box-shadow: none !important; }
+[data-testid="stSlider"] [data-baseweb="slider"] > div > div > div:first-child { background: %(c)s !important; }
+[data-testid="stSliderThumbValue"] { color: %(c)s !important; }
+h1, h1 span, [data-testid="stHeading"] h1 { color: %(c)s !important; }
+h1 { border-bottom: 4px solid %(c)s; padding-bottom: 0.3rem; }
+h3 { color: %(c)s; }
+.paso-actual { color: %(c)s; font-weight: 700; }
+</style>""" % {"c": COLOR, "f": FONDO, "fl": FONDO_LATERAL}, unsafe_allow_html=True)
 
 st.title("Problema del Agente Viajero por fuerza bruta")
 izq, der = st.columns([1, 1.8], gap="large")
